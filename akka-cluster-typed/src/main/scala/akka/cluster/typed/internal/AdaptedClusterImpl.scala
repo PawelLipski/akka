@@ -63,7 +63,7 @@ private[akka] object AdapterClusterImpl {
       Behaviors
         .receiveMessage[AnyRef] {
           case msg @ Subscribe(subscriber: ActorRef[SelfUp] @unchecked, clazz) if clazz == classOf[SelfUp] =>
-            log.info(s"Received Subscribe SelfUp: $msg")
+            log.info(s"Received Subscribe SelfUp: $msg; seenState = $seenState, adaptedCluster.state = ${adaptedCluster.state}, upSubscribers = $upSubscribers")
             seenState match {
               case Up => subscriber ! SelfUp(adaptedCluster.state)
               case BeforeUp =>
