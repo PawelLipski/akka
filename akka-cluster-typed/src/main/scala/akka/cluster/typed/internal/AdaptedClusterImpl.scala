@@ -16,6 +16,7 @@ import akka.cluster.{ ClusterEvent, Member, MemberStatus }
 import akka.cluster.ClusterEvent.MemberEvent
 import akka.cluster.typed.PrepareForFullClusterShutdown
 import akka.cluster.typed._
+import org.slf4j.LoggerFactory
 
 /**
  * INTERNAL API:
@@ -27,6 +28,8 @@ private[akka] object AdapterClusterImpl {
   private case object BeforeUp extends SeenState
   private case object Up extends SeenState
   private case class Removed(previousStatus: MemberStatus) extends SeenState
+
+  private val log = LoggerFactory.getLogger(getClass)
 
   private def subscriptionsBehavior(adaptedCluster: akka.cluster.Cluster): Behavior[ClusterStateSubscription] =
     Behaviors.setup[ClusterStateSubscription] { ctx =>
@@ -59,7 +62,8 @@ private[akka] object AdapterClusterImpl {
 
       Behaviors
         .receiveMessage[AnyRef] {
-          case Subscribe(subscriber: ActorRef[SelfUp] @unchecked, clazz) if clazz == classOf[SelfUp] =>
+          case msg @ Subscribe(subscriber: ActorRef[SelfUp] @unchecked, clazz) if clazz == classOf[SelfUp] =>
+            log.info(s"Received Subscribe SelfUp: $msg")
             seenState match {
               case Up => subscriber ! SelfUp(adaptedCluster.state)
               case BeforeUp =>
@@ -78,7 +82,8 @@ private[akka] object AdapterClusterImpl {
             }
             Behaviors.same
 
-          case Subscribe(subscriber, eventClass) =>
+          case msg @ Subscribe(subscriber, eventClass) =>
+            log.info(s"Received Subscribe: $msg")
             adaptedCluster.subscribe(
               subscriber.toClassic,
               initialStateMode = ClusterEvent.initialStateAsEvents,
