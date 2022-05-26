@@ -73,11 +73,14 @@ private[akka] trait ExtensionsImpl extends Extensions { self: ActorSystem[_] wit
     case some => some.asInstanceOf[T]
   }
 
-  final override def registerExtension[T <: Extension](ext: ExtensionId[T]): T =
-    findExtension(ext) match {
-      case null     => createExtensionInstance(ext)
+  final override def registerExtension[T <: Extension](extenstionId: ExtensionId[T]): T = {
+    val extension = findExtension(extenstionId)
+    log.info(s"registerExtension: ext id = $extenstionId, extension = $extension")
+    extension match {
+      case null     => createExtensionInstance(extenstionId)
       case existing => existing.asInstanceOf[T]
     }
+  }
 
   private def createExtensionInstance[T <: Extension](ext: ExtensionId[T]): T = {
     val inProcessOfRegistration = new CountDownLatch(1)

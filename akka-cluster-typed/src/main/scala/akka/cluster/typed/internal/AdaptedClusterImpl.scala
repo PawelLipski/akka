@@ -16,6 +16,7 @@ import akka.cluster.{ ClusterEvent, Member, MemberStatus }
 import akka.cluster.ClusterEvent.MemberEvent
 import akka.cluster.typed.PrepareForFullClusterShutdown
 import akka.cluster.typed._
+import akka.cluster.typed.internal.AdapterClusterImpl.getClass
 import org.slf4j.LoggerFactory
 
 /**
@@ -152,6 +153,9 @@ private[akka] object AdapterClusterImpl {
 @InternalApi
 private[akka] final class AdapterClusterImpl(system: ActorSystem[_]) extends Cluster {
   import AdapterClusterImpl._
+
+  private val log = LoggerFactory.getLogger(getClass)
+  log.info("Hello from AdapterClusterImpl c'tor")
 
   require(system.isInstanceOf[ActorSystemAdapter[_]], "only adapted actor systems can be used for cluster features")
   private val classicCluster = akka.cluster.Cluster(system)
